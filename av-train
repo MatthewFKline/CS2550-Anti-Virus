@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#==============================================================================
+#==============================================================================
+
+#Merge the "strings" output of all malware into "malwarestrings"
+
+printf "Beginning evil file merge."
+printf "\n"
+
+for evilfile in $1/*; do
+
+	strings $evilfile | tail >> malwarestrings
+
+done
+
+printf "Evil file merge complete"
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+#Sort "malwarestrings" for later comparison
+
+printf "Beginning evil file sort."
+printf "\n"
+
+sort -o malwarestrings malwarestrings
+
+cat malwarestrings | sort -u > processedmalwarestrings
+
+printf "Evil file sort complete."
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+#Merge the "strings" output of all benign binaries into "benignstrings"
+
+printf "Beginning benign file merge."
+printf "\n"
+
+for safefile in $2/*; do
+
+	strings $safefile | tail >> benignstrings
+
+done
+
+printf "Benign file merge complete."
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+#Sort "benignstrings" for later comparison
+
+printf "Beginning benign file sort."
+printf "\n"
+
+sort -o benignstrings benignstrings
+
+cat benignstrings | sort -u > processedbenignstrings
+
+printf "Benign file sort complete."
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+#Find the strings present in both malicious and benign binaries
+
+printf "Finding malicious/benign string intersections."
+printf "\n"
+
+comm -1 -2 processedmalwarestrings processedbenignstrings > intersection
+
+printf "Intersection scan complete."
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+#Remove the intersection of malicious and benign binary strings, place update in new file
+
+printf "Removing malicious/benign string intersections."
+printf "\n"
+
+comm -2 -3 processedmalwarestrings intersection > exclusivemalwarestrings
+
+printf "Removal complete.  Signature file generated."
+printf "\n"
+
+#------------------------------------------------------------------------------
+
+cat exclusivemalwarestrings | sort -u > $3
+sort -o $3 $3
+
+#------------------------------------------------------------------------------
+
+#Clean up files (remove malwarestrings, benignstrings)
+
+rm malwarestrings
+rm processedmalwarestrings
+rm benignstrings
+rm processedbenignstrings
+rm intersection
+rm exclusivemalwarestrings
+
+printf "Cleanup complete."
+printf "\n"
+
+#==============================================================================
+#==============================================================================
+
+
+
+
+
+

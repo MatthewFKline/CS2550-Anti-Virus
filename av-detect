@@ -1,0 +1,94 @@
+#!/bin/bash
+
+#==============================================================================
+#==============================================================================
+
+#Initialize a counter or you'll accidentally pwn yourself
+declare -i counter=0
+declare -i malware=0
+declare -i safe=0
+
+#------------------------------------------------------------------------------
+
+#For each argument
+for i in $@; do
+
+#------------------------------------------------------------------------------
+
+	#If this isn't the signature file
+	if [ $counter -ne 0 ]
+
+		then
+
+		#Get the strings output of the target file
+		strings $i | tail > targetfilestrings
+
+		#Sort the strings output of the target file
+		sort -o targetfilestrings targetfilestrings
+
+		#Output matches with the signature file to stringmatches
+		comm -1 -2 $1 targetfilestrings > stringmatches
+
+		#Get number of matches
+		numberofmatches=$(cat stringmatches | wc -l)
+
+		#Report on number of matches
+		#printf "Number of matches is: $numberofmatches"
+		#printf "\n"
+
+		if [[ $numberofmatches -ge 1 ]]
+			then
+			printf "$i: MALWARE"
+			printf "\n"
+			(( malware++ ))
+		fi
+
+
+		if [[ $numberofmatches -le 0 ]]
+			then
+			printf "$i: SAFE"
+			printf "\n"
+			(( safe++ ))
+		fi
+		
+	#End if statement
+	fi
+
+
+#------------------------------------------------------------------------------
+
+	#increase counter
+	((counter++))
+
+#------------------------------------------------------------------------------
+
+#End loop
+done
+
+#------------------------------------------------------------------------------
+
+#Clean up files
+rm stringmatches
+rm targetfilestrings
+
+#------------------------------------------------------------------------------
+#DIAGNOSTICS
+
+#printf "\n"
+#printf "#=============================================================================="
+#printf "\n"
+#printf "SIGNATURE MATCHES ON BINARIES"
+#printf "\n"
+#printf "MALWARE: $malware"
+#printf "\n"
+#printf "SAFE: $safe"
+#printf "\n"
+
+
+#==============================================================================
+#==============================================================================
+
+
+
+
+
